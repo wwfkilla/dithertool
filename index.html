@@ -5,77 +5,149 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dithering Effect</title>
     <style>
-        body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; background: #1a1a1a; color: #00ff00; }
-        canvas { border: 2px solid #00ff00; }
-        .controls { margin: 10px; }
-        input, select, button { margin: 5px; padding: 5px; background: #00ff00; color: #1a1a1a; border: none; }
-        .value-display { margin-left: 5px; color: #00ff00; }
-        .color-box { width: 20px; height: 20px; display: inline-block; margin: 0 5px; }
-        .export-btn { margin-top: 10px; }
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
+        body {
+            font-family: 'Open Sans', Arial, sans-serif;
+            background-color: #2F2F2F;
+            color: #FFFFFF;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h2 {
+            color: #00CED1;
+            margin-bottom: 5px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        canvas {
+            border: 1px solid #00CED1;
+            margin-top: 5px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            max-width: 100%;
+        }
+        .controls {
+            background: #3C3C3C;
+            padding: 5px;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 500px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin: 2px 0;
+            column-gap: 10px;
+        }
+        .setting {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 1px;
+            font-size: 0.8em;
+            text-align: center;
+        }
+        input[type="range"], select, input[type="color"], button {
+            width: 100%;
+            padding: 2px;
+            margin: 1px 0;
+            border: none;
+            border-radius: 2px;
+            background-color: #4A4A4A;
+            color: #FFFFFF;
+            font-size: 0.7em;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
+            height: 18px;
+        }
+        input[type="range"] {
+            accent-color: #00CED1;
+        }
+        button {
+            background-color: #00CED1;
+            color: #FFFFFF;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s;
+            cursor: pointer;
+            height: 22px;
+            font-size: 0.75em;
+            padding: 0 8px;
+            white-space: nowrap;
+            min-width: 90px;
+        }
+        button:hover {
+            background-color: #009ACD;
+            transform: translateY(-1px);
+        }
+        .value-display {
+            margin-left: 2px;
+            font-weight: 400;
+            color: #00CED1;
+            font-size: 0.7em;
+        }
+        .export-btn {
+            margin-top: 1px;
+        }
         .popup {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: #1a1a1a;
-            color: #00ff00;
-            padding: 20px;
-            border: 2px solid #00ff00;
+            background: #3C3C3C;
+            color: #FFFFFF;
+            padding: 2px;
+            border: 1px solid #00CED1;
+            border-radius: 3px;
             z-index: 1000;
             display: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            font-weight: 600;
+            font-size: 0.8em;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            padding: 15px;
+            background: #3C3C3C;
+            border-radius: 3px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            gap: 8px;
+            width: 100%;
+            max-width: 500px;
         }
     </style>
 </head>
 <body>
-         <div id="popup" class="popup"></div>
+    <div id="popup" class="popup"></div>
     <h2>Dithering Effect</h2>
     <input type="file" id="imageInput" accept="image/*">
     <div class="controls">
-        <label>Dither: </label>
-        <select id="ditherType">
-            <option value="atkinson">Atkinson</option>
-            <option value="floydsteinberg">Floyd-Steinberg</option>
-            <option value="bayer">Bayer</option>
-        </select>
-        <label>FX: </label>
-        <select id="effectType">
-            <option value="grayscale">Grayscale</option>
-            <option value="color">Color</option>
-            <option value="preserve">Preserve Original Colors</option>
-        </select>
-        <label>Color Levels: </label>
-        <select id="colorLevels">
-            <option value="2">2 Colors</option>
-            <option value="4">4 Colors</option>
-            <option value="8">8 Colors</option>
-        </select>
-        <label>Brightness: </label>
-        <input type="range" id="brightness" min="-100" max="100" step="1" value="0"><span id="brightnessValue" class="value-display">0</span>
-        <label>Contrast: </label>
-        <input type="range" id="contrast" min="0.1" max="2" step="0.1" value="1"><span id="contrastValue" class="value-display">1.0</span>
-        <label>Midtones: </label>
-        <input type="range" id="midtones" min="0.5" max="1.5" step="0.1" value="1"><span id="midtonesValue" class="value-display">1.0</span>
-        <label>Highlights: </label>
-        <input type="range" id="highlights" min="0.5" max="1.5" step="0.1" value="1"><span id="highlightsValue" class="value-display">1.0</span>
-        <label>Noise: </label>
-        <input type="range" id="noise" min="0" max="0.1" step="0.01" value="0.01"><span id="noiseValue" class="value-display">0.01</span>
-        <label>Dither Intensity: </label>
-        <input type="range" id="ditherIntensity" min="0" max="1" step="0.1" value="1"><span id="ditherIntensityValue" class="value-display">1.0</span>
-        <label>Edge Enhancement: </label>
-        <input type="range" id="edgeEnhance" min="0" max="5" step="0.1" value="0"><span id="edgeEnhanceValue" class="value-display">0.0</span>
-        <label>Blur Radius: </label>
-        <input type="range" id="blurRadius" min="0" max="5" step="0.1" value="0"><span id="blurRadiusValue" class="value-display">0.0</span>
-        <label>Sharpen Strength: </label>
-        <input type="range" id="sharpenStrength" min="0" max="10" step="0.1" value="0"><span id="sharpenStrengthValue" class="value-display">0.0</span>
-        <label>Live Preview: </label>
-        <input type="checkbox" id="livePreview" checked>
-        <div>
-            <label>Color 1: </label><input type="color" id="color1Input" value="#000000"><span id="color1Value" class="value-display">#000000</span>
-            <label>Color 2: </label><input type="color" id="color2Input" value="#ffffff"><span id="color2Value" class="value-display">#ffffff</span>
-        </div>
+        <div class="setting"><label>Dither:</label><select id="ditherType"><option value="atkinson">Atkinson</option><option value="floydsteinberg">Floyd-Steinberg</option><option value="bayer">Bayer</option></select></div>
+        <div class="setting"><label>Brightness:</label><input type="range" id="brightness" min="-100" max="100" step="1" value="0"><span id="brightnessValue" class="value-display">0</span></div>
+        <div class="setting"><label>FX:</label><select id="effectType"><option value="grayscale">Grayscale</option><option value="color">Color</option><option value="preserve">Preserve Original Colors</option></select></div>
+        <div class="setting"><label>Contrast:</label><input type="range" id="contrast" min="0.1" max="2" step="0.1" value="1"><span id="contrastValue" class="value-display">1.0</span></div>
+        <div class="setting"><label>Color Levels:</label><select id="colorLevels"><option value="2">2 Colors</option><option value="4">4 Colors</option><option value="8">8 Colors</option></select></div>
+        <div class="setting"><label>Midtones:</label><input type="range" id="midtones" min="0.5" max="1.5" step="0.1" value="1"><span id="midtonesValue" class="value-display">1.0</span></div>
+        <div class="setting"><label>Dither Intensity:</label><input type="range" id="ditherIntensity" min="0" max="1" step="0.1" value="1"><span id="ditherIntensityValue" class="value-display">1.0</span></div>
+        <div class="setting"><label>Highlights:</label><input type="range" id="highlights" min="0.5" max="1.5" step="0.1" value="1"><span id="highlightsValue" class="value-display">1.0</span></div>
+        <div class="setting"><label>Noise:</label><input type="range" id="noise" min="0" max="0.1" step="0.01" value="0.01"><span id="noiseValue" class="value-display">0.01</span></div>
+        <div class="setting"><label>Edge Enhancement:</label><input type="range" id="edgeEnhance" min="0" max="5" step="0.1" value="0"><span id="edgeEnhanceValue" class="value-display">0.0</span></div>
+        <div class="setting"><label>Color 1:</label><input type="color" id="color1Input" value="#000000"><span id="color1Value" class="value-display">#000000</span></div>
+        <div class="setting"><label>Blur Radius:</label><input type="range" id="blurRadius" min="0" max="5" step="0.1" value="0"><span id="blurRadiusValue" class="value-display">0.0</span></div>
+        <div class="setting"><label>Color 2:</label><input type="color" id="color2Input" value="#ffffff"><span id="color2Value" class="value-display">#ffffff</span></div>
+        <div class="setting"><label>Sharpen Strength:</label><input type="range" id="sharpenStrength" min="0" max="10" step="0.1" value="0"><span id="sharpenStrengthValue" class="value-display">0.0</span></div>
+        <div class="setting"><label>Live Preview:</label><input type="checkbox" id="livePreview" checked></div>
+    </div>
+    <div class="button-container">
         <button onclick="saveSettings()">Save Settings</button>
         <button onclick="loadSettings()">Load Settings</button>
-        <button onclick="resetAndDither()">Reset & Apply Dither</button>
+        <button onclick="resetAndDither()">Apply Dither</button>
         <button onclick="resetImage()">Reset Image</button>
         <button class="export-btn" onclick="exportImage()">Export PNG</button>
     </div>
@@ -112,22 +184,24 @@
         const color1Value = document.getElementById('color1Value');
         const color2Value = document.getElementById('color2Value');
         let originalImageData = null;
+        let originalWidth = 0;
+        let originalHeight = 0;
         let savedSettings = null;
         let timeoutId = null;
 
         // Update value displays
         [brightness, contrast, midtones, highlights, noise, ditherIntensity, edgeEnhance, blurRadius, sharpenStrength].forEach(control => {
             control.addEventListener('input', () => {
-                const value = Number(control.value); // Convert to number
+                const value = Number(control.value);
                 const display = document.getElementById(`${control.id}Value`);
                 display.textContent = control === brightness ? value : value.toFixed(1);
             });
         });
-        [color1Input, color2Input].forEach(control => {
-            control.addEventListener('input', () => {
-                const display = document.getElementById(`${control.id}Value`);
-                display.textContent = control.value;
-            });
+        color1Input.addEventListener('input', () => {
+            color1Value.textContent = color1Input.value;
+        });
+        color2Input.addEventListener('input', () => {
+            color2Value.textContent = color2Input.value;
         });
         [ditherType, effectType, colorLevels].forEach(control => {
             control.addEventListener('change', () => {
@@ -140,10 +214,27 @@
             const file = e.target.files[0];
             const img = new Image();
             img.onload = function() {
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                originalWidth = img.width;
+                originalHeight = img.height;
+                const maxWidth = 500;
+                let width = originalWidth;
+                let height = originalHeight;
+                if (width > maxWidth) {
+                    const aspectRatio = height / width;
+                    width = maxWidth;
+                    height = width * aspectRatio;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                // Draw the full-resolution image scaled to fit the canvas
+                ctx.drawImage(img, 0, 0, width, height);
+                // Capture full-resolution image data
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = originalWidth;
+                tempCanvas.height = originalHeight;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.drawImage(img, 0, 0);
+                originalImageData = tempCtx.getImageData(0, 0, originalWidth, originalHeight);
                 if (livePreview.checked) updatePreview();
             };
             img.src = URL.createObjectURL(file);
@@ -160,7 +251,21 @@
 
         const updatePreview = debounce(() => {
             if (!originalImageData) return;
-            ctx.putImageData(originalImageData, 0, 0);
+            // Scale the original image data to the canvas dimensions for preview
+            const scaledImageData = ctx.createImageData(canvas.width, canvas.height);
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const origX = (x / canvas.width) * originalWidth;
+                    const origY = (y / canvas.height) * originalHeight;
+                    const origIndex = Math.floor(origY) * originalWidth * 4 + Math.floor(origX) * 4;
+                    const scaledIndex = y * canvas.width * 4 + x * 4;
+                    scaledImageData.data[scaledIndex] = originalImageData.data[origIndex];
+                    scaledImageData.data[scaledIndex + 1] = originalImageData.data[origIndex + 1];
+                    scaledImageData.data[scaledIndex + 2] = originalImageData.data[origIndex + 2];
+                    scaledImageData.data[scaledIndex + 3] = originalImageData.data[origIndex + 3];
+                }
+            }
+            ctx.putImageData(scaledImageData, 0, 0);
             applyFiltersAndDither();
         }, 100);
 
@@ -175,7 +280,7 @@
             const intensity = parseFloat(ditherIntensity.value);
             const edge = parseFloat(edgeEnhance.value);
             const blur = parseFloat(blurRadius.value);
-            const sharpen = parseFloat(sharpenStrength.value) / 10; // Normalize to 0-1
+            const sharpen = parseFloat(sharpenStrength.value) / 10;
             const levels = parseInt(colorLevels.value);
             const color1 = hexToRgb(color1Input.value);
             const color2 = hexToRgb(color2Input.value);
@@ -183,7 +288,6 @@
             const brightness2 = (color2.r + color2.g + color2.b) / 3;
             const [darkerColor, lighterColor] = brightness1 < brightness2 ? [color1, color2] : [color2, color1];
 
-            // Generate color palette based on levels
             const colors = [];
             for (let i = 0; i < levels; i++) {
                 const t = i / (levels - 1);
@@ -194,7 +298,6 @@
                 });
             }
 
-            // Apply blur
             if (blur > 0) {
                 const tempData = new Uint8ClampedArray(data);
                 for (let y = 1; y < canvas.height - 1; y++) {
@@ -217,7 +320,6 @@
                 ctx.putImageData(imageData, 0, 0);
             }
 
-            // Apply sharpen
             if (sharpen > 0) {
                 const tempData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
                 for (let y = 1; y < canvas.height - 1; y++) {
@@ -246,7 +348,6 @@
                 ctx.putImageData(imageData, 0, 0);
             }
 
-            // Apply edge enhancement
             if (edge > 0) {
                 const edgeData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const edgePixels = edgeData.data;
@@ -277,15 +378,12 @@
                     const origR = oldR;
                     const origG = oldG;
                     const origB = oldB;
-                    // Apply brightness
                     oldR = oldR + (255 * b);
                     oldG = oldG + (255 * b);
                     oldB = oldB + (255 * b);
-                    // Clamp values
                     oldR = Math.min(255, Math.max(0, oldR));
                     oldG = Math.min(255, Math.max(0, oldG));
                     oldB = Math.min(255, Math.max(0, oldB));
-                    // Apply contrast
                     oldR = (oldR - 128) * c + 128;
                     oldG = (oldG - 128) * c + 128;
                     oldB = (oldB - 128) * c + 128;
@@ -299,7 +397,7 @@
 
                     let newColor;
                     if (effectType.value === 'preserve') {
-                        const ditheredValue = applyDither(gray, x, y, ditherType.value, n);
+                        const ditheredValue = applyDither(gray, x, y, ditherType.value);
                         const intensityValue = ditheredValue < 128 ? 0 : 255;
                         newColor = {
                             r: (origR * intensityValue) / 255,
@@ -307,7 +405,7 @@
                             b: (origB * intensityValue) / 255
                         };
                     } else {
-                        const ditheredValue = applyDither(gray, x, y, ditherType.value, n);
+                        const ditheredValue = applyDither(gray, x, y, ditherType.value);
                         if (ditherType.value === 'bayer') {
                             const levelIndex = ditheredValue === 0 ? 0 : (levels - 1);
                             newColor = colors[levelIndex];
@@ -316,7 +414,6 @@
                             newColor = colors[levelIndex];
                         }
                     }
-                    // Apply dither intensity
                     const finalR = origR * (1 - intensity) + newColor.r * intensity;
                     const finalG = origG * (1 - intensity) + newColor.g * intensity;
                     const finalB = origB * (1 - intensity) + newColor.b * intensity;
@@ -364,13 +461,12 @@
 
         function resetAndDither() {
             if (!originalImageData) return;
-            ctx.putImageData(originalImageData, 0, 0);
-            applyFiltersAndDither();
+            updatePreview(); // Reuse updatePreview to reset and apply dither
         }
 
         function resetImage() {
             if (originalImageData) {
-                ctx.putImageData(originalImageData, 0, 0);
+                updatePreview(); // Reuse updatePreview to reset
             }
         }
 
@@ -413,12 +509,11 @@
                 sharpenStrength.value = savedSettings.sharpenStrength;
                 color1Input.value = savedSettings.color1;
                 color2Input.value = savedSettings.color2;
-                // Update value displays
                 brightnessValue.textContent = Number(brightness.value);
                 contrastValue.textContent = Number(contrast.value).toFixed(1);
                 midtonesValue.textContent = Number(midtones.value).toFixed(1);
                 highlightsValue.textContent = Number(highlights.value).toFixed(1);
-                noiseValue.textContent = Number(noise.value);
+                noiseValue.textContent = Number(noise.value).toFixed(2);
                 ditherIntensityValue.textContent = Number(ditherIntensity.value).toFixed(1);
                 edgeEnhanceValue.textContent = Number(edgeEnhance.value).toFixed(1);
                 blurRadiusValue.textContent = Number(blurRadius.value).toFixed(1);
@@ -433,7 +528,7 @@
             }
         }
 
-        function applyDither(value, x, y, ditherType, noise) {
+        function applyDither(value, x, y, ditherType) {
             if (ditherType === 'bayer') {
                 const bayerMatrix = [
                     [15, 135, 45, 165],
@@ -444,18 +539,208 @@
                 const matrixX = x % 4;
                 const matrixY = y % 4;
                 const threshold = (bayerMatrix[matrixY][matrixX] + 1) * 255 / 17 - 128;
-                return value + (Math.random() - 0.5) * 255 * noise < threshold ? 0 : 255;
+                return value < threshold ? 0 : 255;
             } else if (ditherType === 'atkinson' || ditherType === 'floydsteinberg') {
-                return value + (Math.random() - 0.5) * 255 * noise; // Continuous value for error diffusion
+                return value;
             }
-            return value; // Default to no dither if type is unrecognized
+            return value;
         }
 
         function exportImage() {
+            if (!originalImageData) return;
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = originalWidth;
+            exportCanvas.height = originalHeight;
+            const exportCtx = exportCanvas.getContext('2d');
+            const fullImageData = new ImageData(new Uint8ClampedArray(originalImageData.data), originalWidth, originalHeight);
+            exportCtx.putImageData(fullImageData, 0, 0);
+            applyFiltersAndDitherOnCanvas(exportCanvas, exportCtx);
             const link = document.createElement('a');
             link.download = 'dithered_image.png';
-            link.href = canvas.toDataURL('image/png', 1.0); // Ensure full quality
+            link.href = exportCanvas.toDataURL('image/png', 1.0);
             link.click();
+        }
+
+        function applyFiltersAndDitherOnCanvas(canvas, ctx) {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            const b = parseFloat(brightness.value) / 100;
+            const c = parseFloat(contrast.value);
+            const m = parseFloat(midtones.value);
+            const h = parseFloat(highlights.value);
+            const n = parseFloat(noise.value);
+            const intensity = parseFloat(ditherIntensity.value);
+            const edge = parseFloat(edgeEnhance.value);
+            const blur = parseFloat(blurRadius.value);
+            const sharpen = parseFloat(sharpenStrength.value) / 10;
+            const levels = parseInt(colorLevels.value);
+            const color1 = hexToRgb(color1Input.value);
+            const color2 = hexToRgb(color2Input.value);
+            const brightness1 = (color1.r + color1.g + color1.b) / 3;
+            const brightness2 = (color2.r + color2.g + color2.b) / 3;
+            const [darkerColor, lighterColor] = brightness1 < brightness2 ? [color1, color2] : [color2, color1];
+
+            const colors = [];
+            for (let i = 0; i < levels; i++) {
+                const t = i / (levels - 1);
+                colors.push({
+                    r: Math.round(darkerColor.r + t * (lighterColor.r - darkerColor.r)),
+                    g: Math.round(darkerColor.g + t * (lighterColor.g - darkerColor.g)),
+                    b: Math.round(darkerColor.b + t * (lighterColor.b - darkerColor.b))
+                });
+            }
+
+            if (blur > 0) {
+                const tempData = new Uint8ClampedArray(data);
+                for (let y = 1; y < canvas.height - 1; y++) {
+                    for (let x = 1; x < canvas.width - 1; x++) {
+                        const index = (y * canvas.width + x) * 4;
+                        let r = 0, g = 0, b = 0;
+                        for (let ky = -1; ky <= 1; ky++) {
+                            for (let kx = -1; kx <= 1; kx++) {
+                                const kIndex = ((y + ky) * canvas.width + (x + kx)) * 4;
+                                r += tempData[kIndex];
+                                g += tempData[kIndex + 1];
+                                b += tempData[kIndex + 2];
+                            }
+                        }
+                        data[index] = r / 9;
+                        data[index + 1] = g / 9;
+                        data[index + 2] = b / 9;
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            if (sharpen > 0) {
+                const tempData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+                for (let y = 1; y < canvas.height - 1; y++) {
+                    for (let x = 1; x < canvas.width - 1; x++) {
+                        const index = (y * canvas.width + x) * 4;
+                        const centerR = tempData[index];
+                        const centerG = tempData[index + 1];
+                        const centerB = tempData[index + 2];
+                        let r = centerR * (1 + sharpen);
+                        let g = centerG * (1 + sharpen);
+                        let b = centerB * (1 + sharpen);
+                        for (let ky = -1; ky <= 1; ky++) {
+                            for (let kx = -1; kx <= 1; kx++) {
+                                if (ky === 0 && kx === 0) continue;
+                                const kIndex = ((y + ky) * canvas.width + (x + kx)) * 4;
+                                r -= tempData[kIndex] * (sharpen / 4);
+                                g -= tempData[kIndex + 1] * (sharpen / 4);
+                                b -= tempData[kIndex + 2] * (sharpen / 4);
+                            }
+                        }
+                        data[index] = Math.min(255, Math.max(0, r));
+                        data[index + 1] = Math.min(255, Math.max(0, g));
+                        data[index + 2] = Math.min(255, Math.max(0, b));
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            if (edge > 0) {
+                const edgeData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const edgePixels = edgeData.data;
+                for (let y = 1; y < canvas.height - 1; y++) {
+                    for (let x = 1; x < canvas.width - 1; x++) {
+                        const index = (y * canvas.width + x) * 4;
+                        const gx = (-edgePixels[index - 4] + edgePixels[index + 4] +
+                                  -2 * edgePixels[index - canvas.width * 4] + 2 * edgePixels[index + canvas.width * 4] +
+                                  -edgePixels[index - canvas.width * 4 - 4] + edgePixels[index + canvas.width * 4 + 4]) * edge;
+                        const gy = (-edgePixels[index - canvas.width * 4] + edgePixels[index + canvas.width * 4] +
+                                  -2 * edgePixels[index - canvas.width * 4 - 4] + 2 * edgePixels[index - canvas.width * 4 + 4] +
+                                  -edgePixels[index + canvas.width * 4 - 4] + edgePixels[index + canvas.width * 4 + 4]) * edge;
+                        const magnitude = Math.sqrt(gx * gx + gy * gy);
+                        edgePixels[index] = Math.min(255, Math.max(0, edgePixels[index] + magnitude * 2));
+                        edgePixels[index + 1] = Math.min(255, Math.max(0, edgePixels[index + 1] + magnitude * 2));
+                        edgePixels[index + 2] = Math.min(255, Math.max(0, edgePixels[index + 2] + magnitude * 2));
+                    }
+                }
+                ctx.putImageData(edgeData, 0, 0);
+            }
+
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const index = (y * canvas.width + x) * 4;
+                    let oldR = data[index];
+                    let oldG = data[index + 1];
+                    let oldB = data[index + 2];
+                    const origR = oldR;
+                    const origG = oldG;
+                    const origB = oldB;
+                    oldR = oldR + (255 * b);
+                    oldG = oldG + (255 * b);
+                    oldB = oldB + (255 * b);
+                    oldR = Math.min(255, Math.max(0, oldR));
+                    oldG = Math.min(255, Math.max(0, oldG));
+                    oldB = Math.min(255, Math.max(0, oldB));
+                    oldR = (oldR - 128) * c + 128;
+                    oldG = (oldG - 128) * c + 128;
+                    oldB = (oldB - 128) * c + 128;
+                    oldR = ((oldR - 128) * m + 128) + h * (oldR > 128 ? 1 : 0);
+                    oldG = ((oldG - 128) * m + 128) + h * (oldG > 128 ? 1 : 0);
+                    oldB = ((oldB - 128) * m + 128) + h * (oldB > 128 ? 1 : 0);
+                    oldR = Math.min(255, Math.max(0, oldR + (Math.random() - 0.5) * 255 * n));
+                    oldG = Math.min(255, Math.max(0, oldG + (Math.random() - 0.5) * 255 * n));
+                    oldB = Math.min(255, Math.max(0, oldB + (Math.random() - 0.5) * 255 * n));
+                    const gray = effectType.value === 'grayscale' ? 0.299 * oldR + 0.587 * oldG + 0.114 * oldB : (oldR + oldG + oldB) / 3;
+
+                    let newColor;
+                    if (effectType.value === 'preserve') {
+                        const ditheredValue = applyDither(gray, x, y, ditherType.value);
+                        const intensityValue = ditheredValue < 128 ? 0 : 255;
+                        newColor = {
+                            r: (origR * intensityValue) / 255,
+                            g: (origG * intensityValue) / 255,
+                            b: (origB * intensityValue) / 255
+                        };
+                    } else {
+                        const ditheredValue = applyDither(gray, x, y, ditherType.value);
+                        if (ditherType.value === 'bayer') {
+                            const levelIndex = ditheredValue === 0 ? 0 : (levels - 1);
+                            newColor = colors[levelIndex];
+                        } else {
+                            const levelIndex = Math.min(Math.floor((ditheredValue / 255) * (levels - 1)), levels - 1);
+                            newColor = colors[levelIndex];
+                        }
+                    }
+                    const finalR = origR * (1 - intensity) + newColor.r * intensity;
+                    const finalG = origG * (1 - intensity) + newColor.g * intensity;
+                    const finalB = origB * (1 - intensity) + newColor.b * intensity;
+                    data[index] = finalR;
+                    data[index + 1] = finalG;
+                    data[index + 2] = finalB;
+
+                    const error = {
+                        r: oldR - data[index],
+                        g: oldG - data[index + 1],
+                        b: oldB - data[index + 2]
+                    };
+                    if (ditherType.value === 'atkinson') {
+                        if (x + 1 < canvas.width) {
+                            data[index + 4] += error.r * 1/8; data[index + 5] += error.g * 1/8; data[index + 6] += error.b * 1/8;
+                            data[index + 5] += error.g * 1/8; data[index + 6] += error.b * 1/8;
+                        }
+                        if (x + 2 < canvas.width) { data[index + 8] += error.r * 1/8; data[index + 9] += error.g * 1/8; data[index + 10] += error.b * 1/8; }
+                        if (y + 1 < canvas.height) {
+                            if (x - 1 >= 0) { data[index + canvas.width * 4 - 4] += error.r * 1/8; data[index + canvas.width * 4 - 3] += error.g * 1/8; data[index + canvas.width * 4 - 2] += error.b * 1/8; }
+                            data[index + canvas.width * 4] += error.r * 1/8; data[index + canvas.width * 4 + 1] += error.g * 1/8; data[index + canvas.width * 4 + 2] += error.b * 1/8;
+                            data[index + canvas.width * 4 + 4] += error.r * 1/8; data[index + canvas.width * 4 + 5] += error.g * 1/8; data[index + canvas.width * 4 + 6] += error.b * 1/8;
+                            if (x + 1 < canvas.width) { data[index + canvas.width * 4 + 8] += error.r * 1/8; data[index + canvas.width * 4 + 9] += error.g * 1/8; data[index + canvas.width * 4 + 10] += error.b * 1/8; }
+                        }
+                    } else if (ditherType.value === 'floydsteinberg') {
+                        if (x + 1 < canvas.width) { data[index + 4] += error.r * 7/16; data[index + 5] += error.g * 7/16; data[index + 6] += error.b * 7/16; }
+                        if (y + 1 < canvas.height) {
+                            if (x - 1 >= 0) { data[index + canvas.width * 4 - 4] += error.r * 3/16; data[index + canvas.width * 4 - 3] += error.g * 3/16; data[index + canvas.width * 4 - 2] += error.b * 3/16; }
+                            data[index + canvas.width * 4] += error.r * 5/16; data[index + canvas.width * 4 + 1] += error.g * 5/16; data[index + canvas.width * 4 + 2] += error.b * 5/16;
+                            if (x + 1 < canvas.width) { data[index + canvas.width * 4 + 4] += error.r * 1/16; data[index + canvas.width * 4 + 5] += error.g * 1/16; data[index + canvas.width * 4 + 6] += error.b * 1/16; }
+                        }
+                    }
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
         }
 
         function hexToRgb(hex) {
