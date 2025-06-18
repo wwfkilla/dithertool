@@ -126,7 +126,7 @@
 <body>
     <div id="popup" class="popup"></div>
     <h2>Dithering Effect</h2>
-    <input type="file" id="imageInput" accept="image/*">
+    <input type="file" id="imageInput" accept="image/*asc1" accept="image/*">
     <div class="controls">
         <div class="setting"><label>Dither:</label><select id="ditherType"><option value="atkinson">Atkinson</option><option value="floydsteinberg">Floyd-Steinberg</option><option value="bayer">Bayer</option></select></div>
         <div class="setting"><label>Brightness:</label><input type="range" id="brightness" min="-100" max="100" step="1" value="0"><span id="brightnessValue" class="value-display">0</span></div>
@@ -226,9 +226,7 @@
                 }
                 canvas.width = width;
                 canvas.height = height;
-                // Draw the full-resolution image scaled to fit the canvas
                 ctx.drawImage(img, 0, 0, width, height);
-                // Capture full-resolution image data
                 const tempCanvas = document.createElement('canvas');
                 tempCanvas.width = originalWidth;
                 tempCanvas.height = originalHeight;
@@ -251,7 +249,6 @@
 
         const updatePreview = debounce(() => {
             if (!originalImageData) return;
-            // Scale the original image data to the canvas dimensions for preview
             const scaledImageData = ctx.createImageData(canvas.width, canvas.height);
             for (let y = 0; y < canvas.height; y++) {
                 for (let x = 0; x < canvas.width; x++) {
@@ -461,13 +458,25 @@
 
         function resetAndDither() {
             if (!originalImageData) return;
-            updatePreview(); // Reuse updatePreview to reset and apply dither
+            updatePreview();
         }
 
         function resetImage() {
-            if (originalImageData) {
-                updatePreview(); // Reuse updatePreview to reset
+            if (!originalImageData) return;
+            const scaledImageData = ctx.createImageData(canvas.width, canvas.height);
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const origX = (x / canvas.width) * originalWidth;
+                    const origY = (y / canvas.height) * originalHeight;
+                    const origIndex = Math.floor(origY) * originalWidth * 4 + Math.floor(origX) * 4;
+                    const scaledIndex = y * canvas.width * 4 + x * 4;
+                    scaledImageData.data[scaledIndex] = originalImageData.data[origIndex];
+                    scaledImageData.data[scaledIndex + 1] = originalImageData.data[origIndex + 1];
+                    scaledImageData.data[scaledIndex + 2] = originalImageData.data[origIndex + 2];
+                    scaledImageData.data[scaledIndex + 3] = originalImageData.data[origIndex + 3];
+                }
             }
+            ctx.putImageData(scaledImageData, 0, 0);
         }
 
         function saveSettings() {
